@@ -9,6 +9,13 @@ import { default_value } from '../utils/micro';
 import * as ignorer from './ignorer';
 import * as crypto from 'crypto';
 
+const groqModuleKeys = new Set([
+  'gemma-7b',
+  'gemma2-9b',
+  'mixtral-8x7b',
+  'llama3-8b',
+  'llama3-70b',
+]);
 
 export function getKey(str: string, from: string, to: string):string {
   let strKey = crypto.createHash('md5').update(str).digest('hex')
@@ -44,6 +51,11 @@ export async function plaintranslate(
     double_brackets_map,
     single_brackets_map,
   } = ignorer.map(str);
+
+  if (!/[\p{L}]/u.test(ignored_str.replace(/\{\d+\}/g, ''))) {
+    global.totalTranslated = global.totalTranslated + 1;
+    return str;
+  }
 
   // step: translate in try-catch to keep continuity
   try {
@@ -143,7 +155,16 @@ function newTranslationModule(
 
   const allModuleKeys: string[] = translationModuleKeys();
   const result: string[] = allModuleKeys.filter(
-    item => !skipModuleKeys.includes(item)
+    item => {
+      const requiresGroqApiKey = groqModuleKeys.has(item);
+
+      return (
+        !skipModuleKeys.includes(item) &&
+        (item !== 'deepl' || !!process.env.DEEPL_API_KEY) &&
+        (!item.startsWith('gpt-') || !!process.env.OPENAI_API_KEY) &&
+        (!requiresGroqApiKey || !!process.env.GROQ_API_KEY)
+      );
+    }
   );
 
   if (result.length == 0) {

@@ -91,6 +91,13 @@ export function getLanguageValues(languages: Record<string, string>): string[] {
   return Object.values(languages);
 }
 
+export function getProviderLanguageCode(
+  moduleKey: string,
+  value: string
+): string {
+  return moduleKey === 'bing' && value === 'zh-CN' ? 'zh-Hans' : value;
+}
+
 export function getLanguageVariant(
   source: string,
   sourceValue: string,
@@ -101,7 +108,8 @@ export function getLanguageVariant(
   for (let key of Object.keys(LanguageMapping)) {
     if (
       LanguageMapping[key].includes(source) &&
-      getTranslationModuleByKey(source).languages[key] === sourceValue &&
+      getTranslationModuleByKey(source).languages[key] ===
+        getProviderLanguageCode(source, sourceValue) &&
       LanguageMapping[key].includes(destination)
     ) {
       destinationValue = getTranslationModuleByKey(destination).languages[key];

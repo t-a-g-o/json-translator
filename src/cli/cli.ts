@@ -1,6 +1,7 @@
 import {
   translationModuleKeys,
   getTranslationModuleByKey,
+  getProviderLanguageCode,
 } from '../modules/helpers';
 import { fileTranslator, getFileFromPath } from '../core/json_file';
 import {
@@ -127,13 +128,15 @@ async function translate() {
   // get from language
   const fromLanguageValue = await fromLanguage(
     commandOptions,
-    TranslationConfig.TranslationModule
+    TranslationConfig.TranslationModule,
+    TranslationConfig.moduleKey
   );
 
   // get to languages
   const toLanguageValues = await toLanguages(
     commandOptions,
-    TranslationConfig.TranslationModule
+    TranslationConfig.TranslationModule,
+    TranslationConfig.moduleKey
   );
 
   // get filename
@@ -206,7 +209,8 @@ async function translationConfig(
 
 async function fromLanguage(
   commandOptions: OptionValues,
-  TranslationModule: TranslationModule
+  TranslationModule: TranslationModule,
+  moduleKey: string
 ): Promise<string> {
   const fromLanguageInput: any = commandOptions.from ?? undefined;
   let fromLanguageValue: string;
@@ -217,7 +221,11 @@ async function fromLanguage(
     const fromLanguageInput = await promptFrom(TranslationModule.languages);
     fromLanguageValue = TranslationModule.languages[fromLanguageInput];
   } else {
-    if (supportedLanguageValues.includes(fromLanguageInput)) {
+    if (
+      supportedLanguageValues.includes(
+        getProviderLanguageCode(moduleKey, fromLanguageInput)
+      )
+    ) {
       fromLanguageValue = fromLanguageInput;
     } else {
       error(`[${fromLanguageInput}]: ${messages.cli.from_not_available}`);
@@ -230,7 +238,8 @@ async function fromLanguage(
 
 async function toLanguages(
   commandOptions: OptionValues,
-  TranslationModule: TranslationModule
+  TranslationModule: TranslationModule,
+  moduleKey: string
 ): Promise<string[]> {
   const toLanguageInputs: any = commandOptions.to ?? undefined;
   let toLanguageValues: string[];
@@ -253,7 +262,11 @@ async function toLanguages(
     }
   } else {
     toLanguageValues = toLanguageInputs.map((lang: string) => {
-      if (supportedLanguageValues.includes(lang)) {
+      if (
+        supportedLanguageValues.includes(
+          getProviderLanguageCode(moduleKey, lang)
+        )
+      ) {
         return lang;
       } else {
         error(`[${lang}]: ${messages.cli.to_not_available}`);

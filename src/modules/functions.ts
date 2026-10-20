@@ -2,7 +2,11 @@ import { translate } from '@vitalets/google-translate-api';
 import * as bingTranslator from 'bing-translate-api';
 import createHttpProxyAgent from 'http-proxy-agent';
 import axios from 'axios';
-import { getLanguageKeyFromValue, safeValueTransition } from './helpers';
+import {
+  getLanguageKeyFromValue,
+  getProviderLanguageCode,
+  safeValueTransition,
+} from './helpers';
 import { warn } from '../utils/console';
 import translate2 from '@iamtraction/google-translate';
 import OpenAI from 'openai';
@@ -67,8 +71,8 @@ export async function translateWithBing(
 ): Promise<string> {
   const { translation } = await bingTranslator.translate(
     safeValueTransition(str),
-    from,
-    to,
+    getProviderLanguageCode('bing', from),
+    getProviderLanguageCode('bing', to),
     false
   );
 

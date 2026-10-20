@@ -3,10 +3,37 @@ import 'openai/shims/node';
 import nock from 'nock';
 import { plaintranslate } from '../core/translator';
 import { DeepLTranslateLanguages } from '../modules/languages';
+import { getProviderLanguageCode } from '../modules/helpers';
 import { TranslationConfig, TranslationModules } from '../modules/modules';
 import { default_concurrency_limit, default_fallback } from '../utils/micro';
 
 describe('TRANSLATOR', () => {
+  it('maps simplified Chinese to the Bing provider language code', () => {
+    expect(getProviderLanguageCode('bing', 'zh-CN')).toBe('zh-Hans');
+    expect(getProviderLanguageCode('google', 'zh-CN')).toBe('zh-CN');
+  });
+
+  it('does not call the provider for text without letters', async () => {
+    global.totalTranslated = 0;
+    const translate = jest.fn();
+    const config: TranslationConfig = {
+      moduleKey: 'google',
+      TranslationModule: {
+        ...TranslationModules.google,
+        translate,
+      },
+      concurrencyLimit: default_concurrency_limit,
+      fallback: default_fallback,
+      cacheEnabled: false,
+    };
+
+    const result = await plaintranslate(config, '123 -- !', 'en', 'fr', []);
+
+    expect(result).toBe('123 -- !');
+    expect(translate).not.toHaveBeenCalled();
+    expect(global.totalTranslated).toBe(1);
+  });
+
   it('should translate using DeepL', async function() {
     process.env.DEEPL_API_KEY = 'deepl_api_key';
 
