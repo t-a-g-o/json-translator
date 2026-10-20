@@ -87,15 +87,15 @@ export async function deepDiver(
               object[k], 
               from, 
               to, 
-              oldTranslation && oldTranslation.data ? oldTranslation.data[k] : undefined
+              oldTranslation ? oldTranslation[k] : undefined
             );
             break;
           case 'string':
             // Check if we have this translation in old file first
-            if (oldTranslation && oldTranslation.data && oldTranslation.data[k] && 
-                oldTranslation.data[k] !== '' && oldTranslation.data[k] !== '--') {
+            if (oldTranslation && oldTranslation[k] && 
+                oldTranslation[k] !== '' && oldTranslation[k] !== '--') {
               // Use existing translation
-              object[k] = oldTranslation.data[k];
+              object[k] = oldTranslation[k];
               global.skipInCache = global.skipInCache + 1;
             } else {
               // Need to translate this string
